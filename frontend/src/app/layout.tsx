@@ -1,0 +1,72 @@
+// @ts-nocheck
+import { Playfair_Display, Roboto } from "next/font/google";
+import "./globals.css";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import { FileProvider } from "@/context/FileProvider";
+import Script from "next/script";
+import Head from "next/head";
+import { IS_SELFHOST } from "@/lib/isSelfHosted";
+import GlobalProvider from "@/context/GlobalContext";
+
+// const playfairDisplay = Playfair_Display({
+//   weight: ['400', '500', '600', '700', '800', '900'],
+//   subsets: ["latin"]
+// })
+
+const roboto = Roboto({
+  weight: ['400', '500', '600', '700', '800', '900'],
+  subsets: ["latin"]
+})
+
+export const metadata = {
+  title: "Transfer.zip | Quick & Easy File Transfer - Send Files",
+  description:
+    "Free sharing of photos, videos and documents. Send large files instantly with a link or email. Simple, fast and secure file sharing with Transfer.zip.",
+  openGraph: {
+    title: "Quick & Easy File Transfer | Transfer.zip",
+    description:
+      "Free sharing of photos, videos and documents. Send large files instantly with a link or email. Simple, fast and secure file sharing with Transfer.zip.",
+    url: "https://transfer.zip",
+    siteName: "Transfer.zip",
+    images: [
+      {
+        url: "https://cdn.transfer.zip/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Transfer.zip tagline \"Send Big Files Without Limits\".",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quick & Easy File Sharing - Transfer.zip",
+    description:
+      "Send large files instantly with a link or email. Simple, fast and secure file sharing with Transfer.zip.",
+    images: ["https://cdn.transfer.zip/og.png"],
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <Head>
+        <script src="/lib/ponyfill.min.js"></script>
+      </Head>
+      {!IS_SELFHOST && process.env.MEGADESK_PUB && <Script src="https://getmegadesk.com/embed.js" data-pub={process.env.MEGADESK_PUB}></Script>}
+
+      {!IS_SELFHOST && process.env.SIGMA_SEO_SITE_ID && <Script defer src="https://sigma-seo.rkt.dev/seo.js" data-website-id={process.env.SIGMA_SEO_SITE_ID}></Script>}
+      <body
+        className={`${roboto.className} antialiased`} // ${roboto.className} ${playfairDisplay.className} 
+      >
+        <GlobalProvider>
+          <FileProvider>
+            {children}
+          </FileProvider>
+        </GlobalProvider>
+      </body>
+    </html>
+  );
+}
+

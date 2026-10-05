@@ -4,13 +4,7 @@
 
 /* global chrome location ReadableStream define MessageChannel TransformStream */
 
-;((name, definition) => {
-    typeof module !== 'undefined'
-      ? module.exports = definition()
-      : typeof define === 'function' && typeof define.amd === 'object'
-        ? define(definition)
-        : this[name] = definition()
-  })('streamSaver', () => {
+const definition = () => {
     'use strict'
 
     if(typeof window === "undefined") {
@@ -326,5 +320,8 @@
     }
   
     return streamSaver
-  })
+}
+
+export default definition();
   
+

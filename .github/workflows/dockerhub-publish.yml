@@ -1,0 +1,198 @@
+name: Publish Docker image
+
+on:
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docker-publish-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  build-amd64:
+    name: Build AMD64 image
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      matrix:
+        component: [web, api]
+
+    steps:
+      - name: Check out released commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate AMD64 image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.DOCKERHUB_USERNAME }}/ziptransfer-${{ matrix.component }}
+          tags: |
+            type=semver,pattern={{version}}-amd64,value=${{ github.event.workflow_run.head_branch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.event.workflow_run.head_sha }}
+
+      - name: Build and push AMD64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.component == 'web' && 'frontend' || 'backend' }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=ziptransfer-${{ matrix.component }}-amd64
+          cache-to: type=gha,mode=max,scope=ziptransfer-${{ matrix.component }}-amd64
+          progress: plain
+
+  build-arm64:
+    name: Build ARM64 image
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    strategy:
+      matrix:
+        component: [web, api]
+
+    steps:
+      - name: Check out released commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate ARM64 image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.DOCKERHUB_USERNAME }}/ziptransfer-${{ matrix.component }}
+          tags: |
+            type=semver,pattern={{version}}-arm64,value=${{ github.event.workflow_run.head_branch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.event.workflow_run.head_sha }}
+
+      - name: Build and push ARM64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.component == 'web' && 'frontend' || 'backend' }}
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=ziptransfer-${{ matrix.component }}-arm64
+          cache-to: type=gha,mode=max,scope=ziptransfer-${{ matrix.component }}-arm64
+          progress: plain
+
+  publish-manifest:
+    name: Publish multi-platform image
+    needs:
+      - build-amd64
+      - build-arm64
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        component: [web, api]
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish multi-platform manifest
+        env:
+          IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/ziptransfer-${{ matrix.component }}
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${RELEASE_TAG#v}"
+
+          echo "Publishing Docker image version: ${VERSION}"
+
+          docker buildx imagetools create \
+            --tag "${IMAGE}:${VERSION}" \
+            "${IMAGE}:${VERSION}-amd64" \
+            "${IMAGE}:${VERSION}-arm64"
+
+          docker buildx imagetools create \
+            --tag "${IMAGE}:latest" \
+            "${IMAGE}:${VERSION}-amd64" \
+            "${IMAGE}:${VERSION}-arm64"
+
+  update-release:
+    name: Append Docker Hub link to GitHub Release
+    needs:
+      - publish-manifest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        
+      - name: Append Docker Hub link to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+          USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${RELEASE_TAG#v}"
+
+          echo "Updating GitHub Release ${RELEASE_TAG}..."
+
+          BODY="$(gh release view "$RELEASE_TAG" --json body --jq '.body')"
+
+          APPEND="## Docker Images
+
+          | Component | Image | Registry | \`linux/amd64\` | \`linux/arm64\` |
+          |---|---|---|---|---|
+          | Web | [\`${USERNAME}/ziptransfer-web:${VERSION}\`](https://hub.docker.com/r/${USERNAME}/ziptransfer-web) | Docker Hub | ✓ | ✓ |
+          | API | [\`${USERNAME}/ziptransfer-api:${VERSION}\`](https://hub.docker.com/r/${USERNAME}/ziptransfer-api) | Docker Hub | ✓ | ✓ |"
+
+          # Only append if it's not already appended to avoid duplication
+          if [[ ! "$BODY" == *"## Docker Images"* ]]; then
+            NEW_BODY="${BODY}
+          
+          ${APPEND}"
+            gh release edit "$RELEASE_TAG" --notes "$NEW_BODY"
+          fi

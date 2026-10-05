@@ -1,7 +1,6 @@
 // @ts-nocheck
 "use client"
 
-import { IS_SELFHOST } from "@/lib/isSelfHosted"
 import { useContext, useEffect, useState } from "react"
 import logo from "@/img/icon.png"
 import { useRouter } from "next/navigation";
@@ -71,7 +70,7 @@ export default function () {
   return (
     <>
       <div className="flex min-h-[100vh] flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        {/* {!IS_SELFHOST && <button className="absolute top-8 text-xl me-1 text-primary hover:text-primary-light" onClick={() => window.history.back()}>&larr; Back</button>} */}
+        
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <Image
             alt="Your Company"
@@ -146,4 +145,6 @@ export default function () {
     </>
   )
 }
+
+
 

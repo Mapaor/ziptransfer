@@ -19,7 +19,6 @@ import * as WebRtc from "@/lib/client/webrtc"
 import * as zip from "@zip.js/zip.js"
 import { useQuickShare } from "@/hooks/client/useQuickShare"
 import { DashboardContext } from "@/context/DashboardContext"
-import { IS_SELFHOST } from "@/lib/isSelfHosted"
 import { sendEvent } from "@/lib/client/umami"
 import { GlobalContext } from "@/context/GlobalContext"
 
@@ -341,7 +340,7 @@ export default function QuickShareProgress({ isLoggedIn }) {
           {!errorMessage ?
             (<ol className="list-decimal list-inside mb-4 md:mb-2">
               {/* <li>Choose if you want to send or receive files.</li> */}
-              <li className={transferState == TRANSFER_STATE_IDLE ? "" : "text-gray-400"}>{(hasBeenSentLink && !IS_SELFHOST) ? "Connecting to server..." : "Scan the QR code or send the link to the recipient."} {transferState == TRANSFER_STATE_IDLE && spinner}</li>
+              <li className={transferState == TRANSFER_STATE_IDLE ? "" : "text-gray-400"}>{false ? "Connecting to server..." : "Scan the QR code or send the link to the recipient."} {transferState == TRANSFER_STATE_IDLE && spinner}</li>
               <li className={transferState == TRANSFER_STATE_CONNECTING ? "" : "text-gray-400"}>Wait for your devices to establish a connection. {transferState == TRANSFER_STATE_CONNECTING && spinner}</li>
               <li className={transferState == TRANSFER_STATE_TRANSFERRING ? "" : "text-gray-400"}>Stand by while the files are being transfered. {transferState == TRANSFER_STATE_TRANSFERRING && spinner}</li>
               <li className={transferState == TRANSFER_STATE_FINISHED ? "" : "text-gray-400"}>Done!</li>
@@ -349,36 +348,11 @@ export default function QuickShareProgress({ isLoggedIn }) {
             :
             <p className="text-danger"><b className="text-danger">Error: </b>{errorMessage}</p>
           }
-          {!IS_SELFHOST && transferState != TRANSFER_STATE_FINISHED && (
-            <Link
-              href={"/app/new"}
-              onNavigate={e => {
-                sendEvent("quick_transfer_upsell_click", { is_logged_in: isLoggedIn })
-                if (!isLoggedIn) {
-                  e.preventDefault()
-                  openSignupDialog(files)
-                }
-              }}
-              className="text-start flex md:inline-flex gap-2 border rounded-lg shadow-sm py-2 ps-3 pe-4 bg-primary-50 group">
-              <div className="flex items-center h-6">
-                <BIcon center className={"text-primary-500 text-sm animate-pulse group-hover:animate-none mt-1"} name={"lightning-fill"} />{" "}
-              </div>
-              <div>
-                <p className="sm:text-lg font-semibold text-primary-500">
-                  {hasBeenSentLink ? "Keep your browser window open" : "Link expires when tab is closed."}
-                </p>
-                {!hasBeenSentLink &&
-                  <span className="text-primary-500">
-                    Make the link available {isLoggedIn ? <span className="">for longer</span> : <span className="font-medium">up to a year</span>}
-                    {" "}
-                    <span className="relative transition-all left-0 group-hover:left-1">&rarr;</span>
-                  </span>
-                }
-              </div>
-            </Link>
-          )}
+          
         </div>
       </div>
     </>
   )
 }
+
+

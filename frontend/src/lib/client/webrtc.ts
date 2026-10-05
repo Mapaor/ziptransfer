@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { IS_SELFHOST } from "../isSelfHosted"
+
 
 const textEnc = new TextEncoder()
 const textDec = new TextDecoder()

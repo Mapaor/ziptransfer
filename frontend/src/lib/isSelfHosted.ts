@@ -1,1 +1,0 @@
-export const IS_SELFHOST = process.env.NEXT_PUBLIC_SELFHOST == undefined || (process.env.NEXT_PUBLIC_SELFHOST && process.env.NEXT_PUBLIC_SELFHOST == "true");

@@ -5,7 +5,6 @@ import ApplicationProvider from "@/context/ApplicationContext";
 import Sidebar from "./Sidebar";
 import { FileProvider } from "@/context/FileProvider";
 import { SelectedTransferProvider } from "@/context/SelectedTransferProvider";
-import { IS_SELFHOST } from "@/lib/isSelfHosted";
 import DismissibleBanner from "./DismissibleBanner";
 
 export const metadata = {
@@ -29,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div>
-      {/* {!IS_SELFHOST && <DismissibleBanner />} */}
+      
       <div className="flex flex-col lg:flex-row min-h-screen">
         <ApplicationProvider>
           <DashboardProvider>
@@ -43,3 +42,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   );
 }
+
+

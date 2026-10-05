@@ -5,7 +5,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { FileProvider } from "@/context/FileProvider";
 import Script from "next/script";
 import Head from "next/head";
-import { IS_SELFHOST } from "@/lib/isSelfHosted";
 import GlobalProvider from "@/context/GlobalContext";
 
 // const playfairDisplay = Playfair_Display({
@@ -54,10 +53,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <Head>
         <script src="/lib/ponyfill.min.js"></script>
       </Head>
-      {!IS_SELFHOST && process.env.MEGADESK_PUB && <Script src="https://getmegadesk.com/embed.js" data-pub={process.env.MEGADESK_PUB}></Script>}
-
-      {!IS_SELFHOST && process.env.SIGMA_SEO_SITE_ID && <Script defer src="https://sigma-seo.rkt.dev/seo.js" data-website-id={process.env.SIGMA_SEO_SITE_ID}></Script>}
-      <body
+      
+            <body
         className={`${roboto.className} antialiased`} // ${roboto.className} ${playfairDisplay.className} 
       >
         <GlobalProvider>
@@ -69,4 +66,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 

@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server"
-import { IS_SELFHOST } from "./lib/isSelfHosted"
-
 const selfHostBlacklist = [
   "/api/stripe"
 ]
@@ -47,22 +45,21 @@ export function proxy(req) {
     return NextResponse.redirect(newUrl, { status: 301 })
   }
 
-  if (IS_SELFHOST) {
-    const newUrl = req.nextUrl.clone()
-    // Restrict access to routes when self-hosting
-    if (newUrl.pathname === "/") {
-      newUrl.pathname = "/quick"
-      return NextResponse.redirect(newUrl, { status: 301 })
-    }
-    if (
-      selfHostWhitelist.every((prefix) => !pathname.startsWith(prefix)) ||
-      selfHostBlacklist.some((prefix) => pathname.startsWith(prefix))
-    ) {
-      newUrl.pathname = "/"
-      return NextResponse.redirect(newUrl, { status: 301 })
-    }
+  const newUrl = req.nextUrl.clone()
+  // Restrict access to routes when self-hosting
+  if (newUrl.pathname === "/") {
+    newUrl.pathname = "/quick"
+    return NextResponse.redirect(newUrl, { status: 301 })
   }
-  else return NextResponse.next()
+  if (
+    selfHostWhitelist.every((prefix) => !pathname.startsWith(prefix)) ||
+    selfHostBlacklist.some((prefix) => pathname.startsWith(prefix))
+  ) {
+    newUrl.pathname = "/"
+    return NextResponse.redirect(newUrl, { status: 301 })
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {

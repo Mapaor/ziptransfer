@@ -1,0 +1,135 @@
+## Requisites
+- A VPS with Pangolin set up
+- Caddy running as a container on your home server
+- Newt configured on your home server so it is connected with your VPS
+- A custom domain, that is already set up to work with Pangolin
+
+## Steps
+
+### 1. Create the Pangolin resources
+Create two Pangolin Public Resources, one for the api and one for the web. Each at your desired domain (eg. transfer.yourdomain.com and api.transfer.yourdomain.com), they both should point to:
+
+```
+http://caddy:80
+```
+
+### 2. Set up Caddy
+Modify your Caddyfile adding to it:
+```
+# TRANSFERIR
+http://transfer.yourdomain.com:80 {
+    reverse_proxy ziptransfer-web:9001 {
+        header_up X-Forwarded-Proto https
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+}
+
+# API TRANSFERIR
+http://api.transfer.yourdomain.com:80 {
+    reverse_proxy ziptransfer-api:9000 {
+        header_up X-Forwarded-Proto https
+        header_up Host {host}
+    }
+
+    @options method OPTIONS
+    handle @options {
+        respond "" 204
+    }
+
+    header Access-Control-Allow-Origin "https://transfer.yourdomain.com"
+    header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    header Access-Control-Allow-Headers "Content-Type, Authorization, tus-resumable, upload-length, upload-offset, upload-metadata"
+    header Access-Control-Expose-Headers "Authorization, Content-Type, Location, Tus-Extension, Tus-Max-Size, Tus-Resumable, Tus-Version, Upload-Concat, Upload-Defer-Length, Upload-Length, Upload-Metadata, Upload-Offset, X-HTTP-Method-Override, X-Requested-With, X-Forwarded-Host, X-Forwarded-Proto, Forwarded"
+    header Access-Control-Allow-Credentials "true"
+}
+```
+
+Now modify your Caddy docker compose file with:
+```yml
+services:
+  caddy:
+    container_name: caddy
+    image: caddy:latest
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - ziptransfer-net # Add this line
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  ziptransfer-net: # Also add this line
+    external: true # And this one
+```
+
+Now run the following command:
+```bash
+docker network create ziptransfer-net
+```
+
+Now you can restart caddy:
+```bash
+docker compose up -d --force-recreate
+```
+
+### 3. Set up Ziptransfer
+On the `.env` set:
+```env
+WEB_URL=https://transfer.yourdomain.com
+SERVER_URL=https://api.transfer.yourdomain.com
+```
+
+Then on the `docker-compose.yml` uncomment the network lines:
+```yml
+services:
+  web:
+    container_name: ziptransfer-web
+    build: frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:${WEB_SERVER_FORWARD_PORT:-9001}:9001"
+    depends_on:
+      - api
+    # Uncomment the following:
+    networks:
+      - ziptransfer-net
+    
+
+  api:
+    container_name: ziptransfer-api
+    build: backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:${BACKEND_FORWARD_PORT:-9000}:9000"
+    volumes:
+      - api_data:/app/data
+    # Uncomment the following:
+    networks:
+      - ziptransfer-net
+
+volumes:
+  api_data:
+
+# Uncomment the following:
+networks:
+  ziptransfer-net:
+    external: true
+```
+
+Now run it:
+```bash
+docker compose up -d --build
+```

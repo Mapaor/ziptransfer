@@ -20,7 +20,7 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:${BACKEND_FORWARD_PORT:-9000}:9000"
+      - "127.0.0.1:${BACKEND_FORWARD_PORT:-9002}:9002"
     volumes:
       - api_data:/app/data
     # If you use caddy as a container uncomment the following

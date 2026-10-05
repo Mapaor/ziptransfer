@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - PORT=9001
     ports:
       - "127.0.0.1:${WEB_SERVER_FORWARD_PORT:-9001}:9001"
     depends_on:
@@ -19,8 +21,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - PORT=9000 # This is the internal docker port, not your host's port
     ports:
-      - "127.0.0.1:${BACKEND_FORWARD_PORT:-9002}:9002"
+      - "127.0.0.1:${BACKEND_FORWARD_PORT:-9002}:9000"
     volumes:
       - api_data:/app/data
     # If you use caddy as a container uncomment the following
@@ -34,3 +38,4 @@ volumes:
 #networks:
   #ziptransfer-net:
     #external: true
+

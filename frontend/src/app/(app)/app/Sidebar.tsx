@@ -239,7 +239,7 @@ export default function Sidebar({ user, storage }) {
                   </li>
                   {/* <div className="text-gray-400 text-xs mb-3 flex justify-between">
                     <Link className="hover:underline" href={"/legal"}>Legal</Link>
-                    <span>&copy; {new Date().getFullYear()} {process.env.NEXT_PUBLIC_AUTHOR}</span>
+                    <span>&copy; {new Date().getFullYear()} {process.env.NEXT_PUBLIC_SITE_NAME}</span>
                   </div> */}
                 </div>
               </ul>

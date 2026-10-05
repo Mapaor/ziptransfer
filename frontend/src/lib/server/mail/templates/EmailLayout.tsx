@@ -1,7 +1,7 @@
 import { Html, Head, Body, Container, Img, Text } from '@react-email/components';
 
 export default function EmailLayout({ children, brand }) {
-  const iconUrl = brand?.iconUrl || `${process.env.SITE_URL}/img/icon.png`
+  const iconUrl = brand?.iconUrl || `${(process.env.WEB_URL || 'http://localhost:9001')}/img/icon.png`
   return (
     <Html>
       <Head />
@@ -18,14 +18,14 @@ export default function EmailLayout({ children, brand }) {
         <Text style={{ textAlign: "center", color: "gray" }}>
           {
             brand ?
-              <>Shared securely for {brand.name} with <a style={{ textDecoration: "underline" }} href={`${process.env.SITE_URL}`}>{process.env.NEXT_PUBLIC_SITE_NAME}</a></>
+              <>Shared securely for {brand.name} with <a style={{ textDecoration: "underline" }} href={`${(process.env.WEB_URL || 'http://localhost:9001')}`}>{process.env.NEXT_PUBLIC_SITE_NAME}</a></>
               :
-              <>Shared securely with <a style={{ textDecoration: "underline" }} href={`${process.env.SITE_URL}`}>{process.env.NEXT_PUBLIC_SITE_NAME}</a></>
+              <>Shared securely with <a style={{ textDecoration: "underline" }} href={`${(process.env.WEB_URL || 'http://localhost:9001')}`}>{process.env.NEXT_PUBLIC_SITE_NAME}</a></>
           }
           <span style={{ margin: "0 4px" }}>&bull;</span>
-          <a style={{ textDecoration: "underline" }} href={`${process.env.SITE_URL}/legal/privacy-policy`}>Privacy</a>
+          <a style={{ textDecoration: "underline" }} href={`${(process.env.WEB_URL || 'http://localhost:9001')}/legal/privacy-policy`}>Privacy</a>
           <span style={{ margin: "0 4px" }}>&bull;</span>
-          <a style={{ textDecoration: "underline" }} href={`${process.env.SITE_URL}/legal/terms-and-conditions`}>Terms</a>
+          <a style={{ textDecoration: "underline" }} href={`${(process.env.WEB_URL || 'http://localhost:9001')}/legal/terms-and-conditions`}>Terms</a>
         </Text>
       </Body>
     </Html>
@@ -46,3 +46,4 @@ const container = {
   width: '600px',
   margin: '0 auto',
 };
+

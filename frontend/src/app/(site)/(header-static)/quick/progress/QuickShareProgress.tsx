@@ -19,7 +19,6 @@ import * as WebRtc from "@/lib/client/webrtc"
 import * as zip from "@zip.js/zip.js"
 import { useQuickShare } from "@/hooks/client/useQuickShare"
 import { DashboardContext } from "@/context/DashboardContext"
-import { sendEvent } from "@/lib/client/umami"
 import { GlobalContext } from "@/context/GlobalContext"
 
 const TRANSFER_STATE_WAIT_FOR_USER = "wait_for_user"
@@ -354,5 +353,6 @@ export default function QuickShareProgress({ isLoggedIn }) {
     </>
   )
 }
+
 
 

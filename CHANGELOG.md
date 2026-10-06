@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated the whole frontend from javascript to typescript.
 - Unified configuration into a single `.env` file.
 - Automated GitHub Actions for multi-platform Docker image builds (AMD and ARM) and release notes directly from Changelog.
+- Created a selfhosting guide.
 
 [Unreleased]: https://github.com/Mapaor/ziptransfer/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/Mapaor/ziptransfer/releases/tag/v1.0.0

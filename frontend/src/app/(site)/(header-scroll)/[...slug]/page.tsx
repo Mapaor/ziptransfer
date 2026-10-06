@@ -6,7 +6,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 // By marking dynamicParams as false, accessing a route not defined in generateStaticParams will 404.
-export const dynamicParams = false
+// Note: Changed to true to prevent Next.js 'NoFallbackError' console spam on unhandled routes.
+export const dynamicParams = true
 
 export async function generateStaticParams() {
   const slugs = await getAllSlugs()

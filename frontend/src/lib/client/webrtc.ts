@@ -18,12 +18,34 @@ export class PeerConnectionError extends Error {
 	}
 }
 
-const RTC_CONF = {
+let RTC_CONF = {
 	iceServers: [
 		{ urls: 'stun:stun.l.google.com:19302' },
-		{ urls: typeof window !== 'undefined' ? 'turn:' + window.location.hostname + ':3478' : 'turn:localhost:3478', username: 'ziptransfer_user', credential: 'ziptransfer_password' }
 	]
 }
+let hasFetchedRTCConf = false;
+
+export const ensureRTCConf = async () => {
+	if (hasFetchedRTCConf) return;
+	try {
+		let prefix = "";
+		if (typeof window !== "undefined") {
+			prefix = (window.location.protocol === "https:" ? "https://" : "http://") + window.location.host;
+		}
+		const res = await fetch(prefix + '/api/turn-credentials');
+		if (res.ok) {
+			const data = await res.json();
+			if (data && data.ice_servers) {
+				RTC_CONF = { iceServers: data.ice_servers };
+			}
+		}
+	} catch (e) {
+		console.error("Failed to fetch ICE servers:", e);
+	} finally {
+		hasFetchedRTCConf = true;
+	}
+}
+
 
 const CPKT_LOGOUT = -1
 const CPKT_LOGIN = 0
@@ -311,6 +333,7 @@ export class RtcListener {
 
 				let entry = this.callerIdPeerConnectionEntries.find(x => x.callerId === x.callerId)
 				if (!entry) {
+					await ensureRTCConf();
 					entry = { callerId: data.callerId, peerConnection: new RTCPeerConnection(RTC_CONF), useFallback: false }
 
 					const icecandidatelistener = entry.peerConnection.addEventListener("icecandidate", e => {
@@ -511,6 +534,7 @@ export class RtcSession {
 			return null
 		}
 		console.log("[RtcSession] _call, forceFallback:", forceFallback)
+		await ensureRTCConf();
 		const peerConnection = new RTCPeerConnection(RTC_CONF);
 		this.peerConnection = peerConnection;
 

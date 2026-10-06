@@ -100,6 +100,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(axum::extract::DefaultBodyLimit::disable())
         .layer(
             TraceLayer::new_for_http()
+                .make_span_with(|request: &axum::http::Request<_>| {
+                    tracing::info_span!(
+                        "http_request",
+                        method = %request.method(),
+                        uri = %request.uri(),
+                    )
+                })
                 .on_request(DefaultOnRequest::new().level(tracing::Level::INFO))
                 .on_response(DefaultOnResponse::new().level(tracing::Level::INFO))
                 .on_failure(DefaultOnFailure::new().level(tracing::Level::ERROR)),

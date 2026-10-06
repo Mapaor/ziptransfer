@@ -1,6 +1,6 @@
 import { User, Transfer, TransferRequest } from "@/types";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"
+export const API_URL = "/api"
 
 const get = async <T = any>(endpoint: string, extraHeaders?: HeadersInit, omitCredentials?: boolean): Promise<T> => {
     const res = await (await fetch(API_URL + endpoint, {

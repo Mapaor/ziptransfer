@@ -142,9 +142,9 @@ Because reverse tunnels like Pangolin/Newt cannot efficiently forward raw UDP po
 On your VPS, create a file named `turn-server.toml`:
 ```toml
 [server]
-port-range = "49152..65535"
+port-range = "52000..65535"
 max-threads = 4
-realm = "transfer.yourdomain.com"
+realm = "transfer.yourdomain.com" # The domain where the ziptransfer-web will be hosted
 
 [[server.interfaces]]
 transport = "udp"
@@ -169,10 +169,14 @@ If you are on Ubuntu Server, you must open the STUN/TURN port and the UDP relay 
 ```bash
 sudo ufw allow 3478/tcp
 sudo ufw allow 3478/udp
-sudo ufw allow 49152:65535/udp
+sudo ufw allow 52000:65535/udp
 ```
 #### 4.3 Set up the VPS firewall
 You'll need to set them in your provider's console (AWS, Oracle, Azure, Ionos, etc.) as well.
+
+[Screenshot]
+
+*Note: If you have other services running on ports above 52000 you can shorten the range of the ports so it does not affect your used port, Turn will continue to work as well. I replaced 49152 with 52000 precisely because newt being on port 51820.*
 
 #### 4.4 Start the turn server with docker
 Start the TURN server on the VPS. We use `network host` to avoid Docker NAT issues with UDP port allocations:

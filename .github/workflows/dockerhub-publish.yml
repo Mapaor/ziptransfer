@@ -186,8 +186,8 @@ jobs:
 
           | Component | Image | Registry | \`linux/amd64\` | \`linux/arm64\` |
           |---|---|---|---|---|
-          | Web | [\`${USERNAME}/ziptransfer-web:${VERSION}\`](https://hub.docker.com/r/${USERNAME}/ziptransfer-web) | Docker Hub | ✓ | ✓ |
-          | API | [\`${USERNAME}/ziptransfer-api:${VERSION}\`](https://hub.docker.com/r/${USERNAME}/ziptransfer-api) | Docker Hub | ✓ | ✓ |"
+          | Web | [\`${USERNAME}/ziptransfer-web:${VERSION}\`](https://hub.docker.com/layers/${USERNAME}/ziptransfer-web/${VERSION}) | Docker Hub | ✓ | ✓ |
+          | API | [\`${USERNAME}/ziptransfer-api:${VERSION}\`](https://hub.docker.com/layers/${USERNAME}/ziptransfer-api/${VERSION}) | Docker Hub | ✓ | ✓ |"
 
           # Only append if it's not already appended to avoid duplication
           if [[ ! "$BODY" == *"## Docker Images"* ]]; then

@@ -175,7 +175,7 @@ sudo ufw allow 52000:65535/udp
 #### 4.3 Set up the VPS firewall
 You'll need to set them in your provider's console (AWS, Oracle, Azure, Ionos, etc.) as well.
 
-<img width="1057" height="648" alt="imatge" src="https://github.com/user-attachments/assets/7f1e7392-9b8b-4909-887d-040e91735ad5" />
+<img width="1129" height="787" alt="Screenshot 2026-10-06 at 20-25-09 Cloud Panel" src="https://github.com/user-attachments/assets/53160739-73fe-4ae6-aed1-a02aaf36276a" />
 
 
 *Note: If you have other services running on ports above 52000 you can shorten the range of the ports so it does not affect your used port, Turn will continue to work as well. I replaced 49152 with 52000 precisely because newt being on port 51820.*

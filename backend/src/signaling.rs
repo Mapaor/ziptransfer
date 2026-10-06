@@ -40,6 +40,8 @@ struct ClientPacket {
 struct ServerPacket {
     #[serde(rename = "type")]
     packet_type: i32,
+    #[serde(rename = "targetId", skip_serializing_if = "Option::is_none")]
+    target_id: Option<String>,
     #[serde(rename = "callerId", skip_serializing_if = "Option::is_none")]
     caller_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -113,6 +115,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_OFFER,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(caller),
                                     offer: Some(offer),
                                     answer: None,
@@ -130,6 +133,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_ANSWER,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(session_id),
                                     offer: None,
                                     answer: Some(answer),
@@ -147,6 +151,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_CANDIDATE,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(caller),
                                     offer: None,
                                     answer: None,
@@ -164,6 +169,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_SWITCH_TO_FALLBACK,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(caller),
                                     offer: None,
                                     answer: None,
@@ -181,6 +187,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_SWITCH_TO_FALLBACK_ACK,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(caller),
                                     offer: None,
                                     answer: None,
@@ -198,6 +205,7 @@ async fn handle_socket(socket: WebSocket, state: AppState) {
                             if let Some(peer_tx) = state_clone.signaling.get(&recipient) {
                                 let out = ServerPacket {
                                     packet_type: SPKT_P2P_FAILED,
+                                    target_id: Some(recipient.clone()),
                                     caller_id: Some(caller),
                                     offer: None,
                                     answer: None,

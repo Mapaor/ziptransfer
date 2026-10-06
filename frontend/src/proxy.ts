@@ -5,7 +5,7 @@ const selfHostBlacklist = [
 
 const selfHostWhitelist = [
   "/change-password",
-  "/app", "/legal", "/api",
+  "/app", "/api",
   "/transfer", "/upload",
   "/quick", "/signin", "/signup"
 ]
@@ -14,12 +14,8 @@ const legacyRedirects = [
   { from: "/quick-share", to: "/quick" },
   { from: "/login", to: "/signin" },
   { from: "/about", to: "/" },
-  { from: "/pricing", to: "/" },
-  { from: "/tools/heic-convert", to: "/tools/convert-heic-to-jpg" },
-  { from: "/posts/easy_ways_to_share_files_anonymously_in_2025", to: "/how-to/share-files/anonymously" },
-  { from: "/posts/easy_ways_to_send_large_files_online_free_without_registration", to: "/how-to/share-files/no-sign-up" },
-  { from: /^\/posts.*$/, to: "/how-to" },
 ]
+
 
 export function proxy(req) {
   const { pathname } = req.nextUrl
@@ -36,7 +32,6 @@ export function proxy(req) {
 
   // legacy redirects
   const legacyMatch = legacyRedirects.find((entry) => {
-    if (entry.from instanceof RegExp) return entry.from.test(pathname)
     return pathname === entry.from
   })
   if (legacyMatch) {

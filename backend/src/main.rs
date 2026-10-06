@@ -1,15 +1,18 @@
-use axum::{routing::{get, post, put}, Router};
-use sqlx::sqlite::SqlitePoolOptions;
+use axum::{
+    Router,
+    routing::{get, post, put},
+};
 use sqlx::SqlitePool;
+use sqlx::sqlite::SqlitePoolOptions;
 
-use std::sync::Arc;
 use dashmap::DashMap;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 mod auth;
+mod maintenance;
 mod signaling;
 mod transfer;
-mod maintenance;
 
 use axum::extract::ws::Message;
 
@@ -19,6 +22,22 @@ pub struct AppState {
     pub signaling: Arc<DashMap<String, mpsc::UnboundedSender<Message>>>,
 }
 
+async fn root_handler(
+    axum::extract::State(state): axum::extract::State<AppState>,
+) -> axum::Json<serde_json::Value> {
+    let db_status = match sqlx::query("SELECT 1").execute(&state.db).await {
+        Ok(_) => "connected",
+        Err(_) => "error",
+    };
+
+    axum::Json(serde_json::json!({
+        "server": env!("CARGO_PKG_NAME"),
+        "version": env!("CARGO_PKG_VERSION"),
+        "server_status": "online",
+        "database_status": db_status
+    }))
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
@@ -26,8 +45,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     // Initialize SQLite connection
-    let db_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:///app/data/sqlite.db".to_string());
-    
+    let db_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "sqlite:///app/data/sqlite.db".to_string());
+
     // Extract path and ensure DB file exists
     let db_path = db_url.trim_start_matches("sqlite://");
     if let Some(parent) = std::path::Path::new(db_path).parent() {
@@ -48,19 +68,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start background maintenance loop
     maintenance::start_cleanup_task(pool.clone());
 
-    let state = AppState { 
+    let state = AppState {
         db: pool,
         signaling: Arc::new(DashMap::new()),
     };
 
     let app = Router::new()
+        .route("/", get(root_handler))
+        .route("/health", get(|| async { axum::http::StatusCode::OK }))
         .route("/api/health", get(|| async { "OK" }))
         .route("/api/user", get(auth::get_user))
         .route("/api/user/settings", put(auth::put_user_settings))
         .route("/api/auth/register", post(auth::register))
         .route("/api/auth/login", post(auth::login))
         .route("/api/auth/logout", post(auth::logout))
-        .route("/api/auth/passwordreset/request", post(auth::passwordreset_request))
+        .route(
+            "/api/auth/passwordreset/request",
+            post(auth::passwordreset_request),
+        )
         .route("/api/auth/passwordreset/do", post(auth::passwordreset_do))
         .route("/api/signaling", get(signaling::ws_handler))
         .merge(transfer::router())
@@ -69,7 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "9000".to_string());
     let addr = format!("0.0.0.0:{}", port);
-    
+
     println!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

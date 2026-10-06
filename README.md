@@ -6,6 +6,23 @@ There are two types of transfers: direct transfers and persistent transfers. The
 
 For P2P transfers you can use a custom TURN server, which allows NAT-traversal for (quick) direct transfers even when the NAT is very strict or devices are on different LANs. For more information see [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Roadmap
+
+### In the near future
+- [X] Custom TURN server
+- [ ] Transfer requests
+- [ ] Email SMTP (for sending transfers via email and other email notifications)
+- [ ] Create admin user that can manage all transfers and other users
+- [ ] Disable or enable sign-up. Only admin can sign up new users.
+- [ ] Create user quota and handle logical volumes space available properly
+- [ ] Password reset via email link
+- [ ] Google OAuth2 option to Sign-in and Sign-up
+
+### In the far future
+- [ ] Upgrade and migrate the whole UI to a newer one, that distances it from the original Transfer.zip in a good sense, making it more original/cute and less corporative.
+- [ ] Add internationalization support for the UI (Catalan, Spanish, English for now)
+- [ ] Add support for multiple storage backends (local, S3, etc.)
+
 ## License
 This project is a modified version of [Transfer.zip](https://github.com/robinkarlberg/transfer.zip-web), originally developed by Robin Karlberg. Due to that the same AGPL-3.0 has been preserved.
 

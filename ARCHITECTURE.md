@@ -128,3 +128,20 @@ The application has successfully migrated from a Node/Mongo/JS stack to a modern
 **Priorities for Next Week:**
 1.  **Email Integrations**: Implement email sharing services (e.g., using ForwardEmail or Cloudflare Email Routing) to actually process `sendbyemail` calls for both transfers and requests.
 2.  **UI Polish**: Clean up the `branding` and `settings` views to reflect the simplified, non-commercial feature set.
+
+---
+
+## 6. WebRTC P2P & Relay Architecture
+
+ZipTransfer prioritizes peer-to-peer (P2P) connections for "Quick Share" file transfers. The WebRTC pipeline gracefully degrades through three tiers of connectivity to guarantee file delivery regardless of NAT strictness or firewall configurations:
+
+1. **Direct P2P via Local Network & STUN (`typ host` / `typ srflx`)**
+   * If two devices are on the same local network, WebRTC attempts to connect directly via local IPs (host candidates).
+   * If they are on different networks, the frontend fetches Google's public STUN servers (always provided by the backend) to discover their public IP addresses and punch through standard NATs.
+2. **Relay via Custom TURN Server (`typ relay`)**
+   * If direct P2P fails (e.g., symmetric NATs or strict firewalls), traffic is relayed through a standalone TURN server (`turn-rs`).
+   * The backend dynamically generates temporary (24-hour) HMAC-SHA1 signed credentials (`turn.rs: /api/turn-credentials`) that the frontend fetches asynchronously to authenticate against the TURN server.
+   * *Note: The TURN server is designed to be hosted natively on a VPS to bypass local WireGuard tunnel UDP limitations, while the backend API configures it securely.*
+3. **WebSocket Binary Fallback (`SPKT_SWITCH_TO_FALLBACK`)**
+   * If the WebRTC ICE connection fails or times out (8.2s), the frontend gracefully falls back to sending binary file chunks directly over the signaling WebSocket.
+   * The backend's `signaling.rs` seamlessly proxies binary packets between the `sender` and `receiver` as a last-resort relay mechanism.

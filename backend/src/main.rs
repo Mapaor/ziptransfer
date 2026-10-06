@@ -4,9 +4,7 @@ use axum::{
 };
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqlitePoolOptions;
-use tower_http::trace::{
-    DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer,
-};
+use tower_http::trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 
 use dashmap::DashMap;
 use std::sync::Arc;
@@ -16,6 +14,7 @@ mod auth;
 mod maintenance;
 mod signaling;
 mod transfer;
+mod turn_server;
 
 use axum::extract::ws::Message;
 
@@ -115,6 +114,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "9000".to_string());
     let addr = format!("0.0.0.0:{}", port);
+
+    // Start embedded TURN server
+    tokio::spawn(async move {
+        turn_server::start_turn_server().await;
+    });
 
     tracing::info!(listen_address = %addr, "Starting API server");
     let listener = tokio::net::TcpListener::bind(addr).await?;

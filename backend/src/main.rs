@@ -31,7 +31,6 @@ async fn root_handler(
     };
 
     axum::Json(serde_json::json!({
-        "server": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
         "server_status": "online",
         "database_status": db_status

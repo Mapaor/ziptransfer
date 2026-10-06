@@ -4,6 +4,9 @@ use axum::{
 };
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqlitePoolOptions;
+use tower_http::trace::{
+    DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer,
+};
 
 use dashmap::DashMap;
 use std::sync::Arc;
@@ -27,7 +30,10 @@ async fn root_handler(
 ) -> axum::Json<serde_json::Value> {
     let db_status = match sqlx::query("SELECT 1").execute(&state.db).await {
         Ok(_) => "connected",
-        Err(_) => "error",
+        Err(error) => {
+            tracing::error!(error = %error, "Database health check failed");
+            "error"
+        }
     };
 
     axum::Json(serde_json::json!({
@@ -49,6 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Extract path and ensure DB file exists
     let db_path = db_url.trim_start_matches("sqlite://");
+    tracing::info!(database_path = %db_path, "Initializing database");
     if let Some(parent) = std::path::Path::new(db_path).parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -60,9 +67,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .max_connections(5)
         .connect(&db_url)
         .await?;
+    tracing::info!("Database connection established");
 
     // Run migrations
     sqlx::migrate!("./migrations").run(&pool).await?;
+    tracing::info!("Database migrations completed");
 
     // Start background maintenance loop
     maintenance::start_cleanup_task(pool.clone());
@@ -89,12 +98,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/signaling", get(signaling::ws_handler))
         .merge(transfer::router())
         .layer(axum::extract::DefaultBodyLimit::disable())
+        .layer(
+            TraceLayer::new_for_http()
+                .on_request(DefaultOnRequest::new().level(tracing::Level::INFO))
+                .on_response(DefaultOnResponse::new().level(tracing::Level::INFO))
+                .on_failure(DefaultOnFailure::new().level(tracing::Level::ERROR)),
+        )
         .with_state(state);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "9000".to_string());
     let addr = format!("0.0.0.0:{}", port);
 
-    println!("Starting server on {}", addr);
+    tracing::info!(listen_address = %addr, "Starting API server");
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
 

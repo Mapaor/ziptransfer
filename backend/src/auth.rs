@@ -276,8 +276,8 @@ pub async fn passwordreset_request(
         .execute(&state.db)
         .await;
 
-    // Output token to console so user can grab it if testing locally, since no email sender is configured
-    tracing::info!("Password reset requested for {}. Token: {}", payload.email, token);
+    // Email delivery is not configured, so the token remains available through the normal test flow.
+    tracing::info!("Password reset requested for {}", payload.email);
 
     Json(GenericResponse { success: true, message: None })
 }

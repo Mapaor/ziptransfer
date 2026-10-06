@@ -8,7 +8,7 @@ pub fn start_cleanup_task(pool: SqlitePool) {
             // Wake up every hour
             sleep(Duration::from_secs(3600)).await;
             
-            println!("Running automated maintenance to clean up expired transfers...");
+            tracing::info!("Running automated maintenance");
             
             let expired_transfers_result = sqlx::query("SELECT id FROM transfers WHERE expires_at < ?")
                 .bind(Utc::now().naive_utc())
@@ -24,7 +24,12 @@ pub fn start_cleanup_task(pool: SqlitePool) {
                         // Delete the file from the disk, ignoring if it doesn't exist
                         if let Err(e) = tokio::fs::remove_file(&file_path).await {
                             if e.kind() != std::io::ErrorKind::NotFound {
-                                eprintln!("Failed to delete file {}: {}", file_path, e);
+                                tracing::error!(
+                                    transfer_id = %id,
+                                    path = %file_path,
+                                    error = %e,
+                                    "Failed to delete expired transfer file"
+                                );
                             }
                         }
                         
@@ -34,14 +39,18 @@ pub fn start_cleanup_task(pool: SqlitePool) {
                             .execute(&pool)
                             .await 
                         {
-                            eprintln!("Failed to delete transfer record {}: {}", id, e);
+                            tracing::error!(
+                                transfer_id = %id,
+                                error = %e,
+                                "Failed to delete expired transfer record"
+                            );
                         } else {
-                            println!("Successfully cleaned up expired transfer {}", id);
+                            tracing::info!(transfer_id = %id, "Cleaned up expired transfer");
                         }
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to fetch expired transfers: {}", e);
+                    tracing::error!(error = %e, "Failed to fetch expired transfers");
                 }
             }
         }

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-05
+## [0.1.0] - 2026-10-05
 
 ### Added
 - Initial stable release of ZipTransfer.
@@ -20,5 +20,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated GitHub Actions for multi-platform Docker image builds (AMD and ARM) and release notes directly from Changelog.
 - Created a selfhosting guide.
 
-[Unreleased]: https://github.com/Mapaor/ziptransfer/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Mapaor/ziptransfer/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Mapaor/ziptransfer/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Mapaor/ziptransfer/releases/tag/v0.1.0

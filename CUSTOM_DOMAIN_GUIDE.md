@@ -139,7 +139,7 @@ docker compose up -d --build
 Because reverse tunnels like Pangolin/Newt cannot efficiently forward raw UDP port ranges, the WebRTC TURN server must run directly on your VPS.
 
 #### 4.1 Configure the turn server
-On your VPS, create a file named `turn-server.toml`:
+On your VPS, create a directory, call it `turn-rs` or `turn-server` or however you want, then do `cd` to that directory and in there create a file named `turn-server.toml` with the following contents:
 ```toml
 [server]
 port-range = "52000..65535"
@@ -163,6 +163,7 @@ stdout = true
 [auth]
 static-auth-secret = "your_super_secret_key"
 ```
+*Note: You need to manually change the realm, VPS public IP, and secret key*
 
 #### 4.2 Set up the OS firewall
 If you are on Ubuntu Server, you must open the STUN/TURN port and the UDP relay port range on your VPS firewall using `ufw`:
@@ -179,7 +180,7 @@ You'll need to set them in your provider's console (AWS, Oracle, Azure, Ionos, e
 *Note: If you have other services running on ports above 52000 you can shorten the range of the ports so it does not affect your used port, Turn will continue to work as well. I replaced 49152 with 52000 precisely because newt being on port 51820.*
 
 #### 4.4 Start the turn server with docker
-Start the TURN server on the VPS. We use `network host` to avoid Docker NAT issues with UDP port allocations:
+Start the TURN server on the VPS. We use `network host` to avoid Docker NAT issues with UDP port allocations,m run from that same directory the following command:
 ```bash
 docker run -d --network host --name turn-server --restart unless-stopped \
   -v $(pwd)/turn-server.toml:/etc/turn-server/config.toml \

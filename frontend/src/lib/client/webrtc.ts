@@ -331,9 +331,8 @@ export class RtcListener {
 				this.log("Got offer:", data.offer)
 				let recipientId = data.callerId
 
-				let entry = this.callerIdPeerConnectionEntries.find(x => x.callerId === x.callerId)
+				let entry = this.callerIdPeerConnectionEntries.find(x => x.callerId === data.callerId)
 				if (!entry) {
-					await ensureRTCConf();
 					entry = { callerId: data.callerId, peerConnection: new RTCPeerConnection(RTC_CONF), useFallback: false }
 
 					const icecandidatelistener = entry.peerConnection.addEventListener("icecandidate", e => {
@@ -417,7 +416,7 @@ export class RtcListener {
 				await entry.peerConnection.addIceCandidate(data.candidate)
 			}
 			else if (data.type == SPKT_SWITCH_TO_FALLBACK) {
-				let entry = this.callerIdPeerConnectionEntries.find(x => x.callerId === x.callerId)
+				let entry = this.callerIdPeerConnectionEntries.find(x => x.callerId === data.callerId)
 
 				// if(!currentUserCanFallback) {
 				// 	ws.send(JSON.stringify({
@@ -462,6 +461,7 @@ export class RtcListener {
 	}
 
 	async listen(currentUserCanFallback) {
+		await ensureRTCConf();
 		await this.waitForWebsocket()
 		return this._listen(currentUserCanFallback)
 	}
@@ -534,7 +534,6 @@ export class RtcSession {
 			return null
 		}
 		console.log("[RtcSession] _call, forceFallback:", forceFallback)
-		await ensureRTCConf();
 		const peerConnection = new RTCPeerConnection(RTC_CONF);
 		this.peerConnection = peerConnection;
 
@@ -695,6 +694,7 @@ export class RtcSession {
 	}
 
 	async call(recipientId, forceFallback) {
+		await ensureRTCConf();
 		await this.waitForWebsocket()
 		return this._call(recipientId, forceFallback)
 	}

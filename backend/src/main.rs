@@ -14,8 +14,7 @@ mod auth;
 mod maintenance;
 mod signaling;
 mod transfer;
-mod turn_server;
-
+mod turn;
 use axum::extract::ws::Message;
 
 #[derive(Clone)]
@@ -96,6 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/auth/passwordreset/do", post(auth::passwordreset_do))
         .route("/api/signaling", get(signaling::ws_handler))
         .merge(transfer::router())
+        .merge(turn::router())
         .layer(axum::extract::DefaultBodyLimit::disable())
         .layer(
             TraceLayer::new_for_http()
@@ -114,11 +114,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "9000".to_string());
     let addr = format!("0.0.0.0:{}", port);
-
-    // Start embedded TURN server
-    tokio::spawn(async move {
-        turn_server::start_turn_server().await;
-    });
 
     tracing::info!(listen_address = %addr, "Starting API server");
     let listener = tokio::net::TcpListener::bind(addr).await?;

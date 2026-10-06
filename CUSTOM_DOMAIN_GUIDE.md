@@ -133,3 +133,63 @@ Now run it:
 ```bash
 docker compose up -d --build
 ```
+
+### 4. Configure a Turn Server on the VPS
+
+Because reverse tunnels like Pangolin/Newt cannot efficiently forward raw UDP port ranges, the WebRTC TURN server must run directly on your VPS.
+
+#### 4.1 Configure the turn server
+On your VPS, create a file named `turn-server.toml`:
+```toml
+[server]
+port-range = "49152..65535"
+max-threads = 4
+realm = "transfer.yourdomain.com"
+
+[[server.interfaces]]
+transport = "udp"
+listen = "0.0.0.0:3478"
+external = "YOUR_VPS_PUBLIC_IP:3478"
+
+[[server.interfaces]]
+transport = "tcp"
+listen = "0.0.0.0:3478"
+external = "YOUR_VPS_PUBLIC_IP:3478"
+
+[log]
+level = "info"
+stdout = true
+
+[auth]
+static-auth-secret = "your_super_secret_key"
+```
+
+#### 4.2 Set up the OS firewall
+If you are on Ubuntu Server, you must open the STUN/TURN port and the UDP relay port range on your VPS firewall using `ufw`:
+```bash
+sudo ufw allow 3478/tcp
+sudo ufw allow 3478/udp
+sudo ufw allow 49152:65535/udp
+```
+#### 4.3 Set up the VPS firewall
+You'll need to set them in your provider's console (AWS, Oracle, Azure, Ionos, etc.) as well.
+
+#### 4.4 Start the turn server with docker
+Start the TURN server on the VPS. We use `network host` to avoid Docker NAT issues with UDP port allocations:
+```bash
+docker run -d --network host --name turn-server --restart unless-stopped \
+  -v $(pwd)/turn-server.toml:/etc/turn-server/config.toml \
+  ghcr.io/mycrl/turn-server:4.1.5
+```
+
+#### 4.5 Restart Ziptransfer
+Finally, back on your home server, update Ziptransfer's `.env` file to use it with:
+```env
+TURN_DOMAIN=YOUR_VPS_PUBLIC_IP
+TURN_SHARED_SECRET=your_super_secret_key
+```
+
+And restart Ziptransfer to apply the changes:
+```bash
+docker compose up -d --force-recreate
+```

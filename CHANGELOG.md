@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-10-07
+## [0.1.1] - 2026-10-07
 
 ### Added
 - Added back transfer requests.
@@ -30,6 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created a selfhosting guide.
 - Created a configurable way to connect to your own turn server for improving WebRTC. It can always fall back to Google's free STUN servers.
 
-[Unreleased]: https://github.com/Mapaor/ziptransfer/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/Mapaor/ziptransfer/compare/v0.1.0...v0.2.0
+[Unreleased]: https://github.com/Mapaor/ziptransfer/compare/v0.1.1...HEAD
+[0.2.0]: https://github.com/Mapaor/ziptransfer/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Mapaor/ziptransfer/releases/tag/v0.1.0

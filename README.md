@@ -10,10 +10,12 @@ For P2P transfers you can use a custom TURN server, which allows NAT-traversal f
 
 ### In the near future
 - [X] Custom TURN server
-- [ ] Transfer requests
-- [ ] Email SMTP (for sending transfers via email and other email notifications)
+- [X] Transfer requests
+- [X] Email SMTP 
+- [X] Allow sending transfers via email
 - [ ] Create admin user that can manage all transfers and other users
-- [ ] Disable or enable sign-up. Only admin can sign up new users.
+- [X] Disable or enable sign-up.
+- [ ] Only admin can sign up new users.
 - [ ] Create user quota and handle logical volumes space available properly
 - [ ] Password reset via email link
 - [ ] Google OAuth2 option to Sign-in and Sign-up

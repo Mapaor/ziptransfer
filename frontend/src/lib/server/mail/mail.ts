@@ -1,5 +1,6 @@
 // @ts-nocheck
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import TransferDownloadedEmail from './templates/TransferDownloadedEmail.jsx';
 import TransferRequestReceivedEmail from './templates/TransferRequestReceivedEmail.jsx';
@@ -22,12 +23,28 @@ const transporter = process.env.SMTP_HOST ? nodemailer.createTransport({
   },
 }) : null;
 
+const resend = (!process.env.SMTP_HOST && process.env.RESEND_API_KEY) ? new Resend(process.env.RESEND_API_KEY) : null;
+
 async function sendMail(reactElement, { from, to, subject }) {
   const html = await render(reactElement);
-  const sender = from || process.env.SMTP_FROM || "noreply@transfer.zip";
+  let sender = from;
+  if (!sender) {
+    if (resend) {
+      sender = process.env.RESEND_FROM || "noreply@transfer.zip";
+    } else {
+      sender = process.env.SMTP_FROM || "noreply@transfer.zip";
+    }
+  }
 
   if (transporter) {
     await transporter.sendMail({
+      from: sender,
+      to,
+      subject,
+      html,
+    });
+  } else if (resend) {
+    await resend.emails.send({
       from: sender,
       to,
       subject,

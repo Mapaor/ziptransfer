@@ -31,6 +31,21 @@ pub async fn register(
     Json(payload): Json<AuthPayload>,
 ) -> impl IntoResponse {
     tracing::info!("Registering user with email: {}", payload.email);
+
+    let allow_signups = std::env::var("ALLOW_SIGNUPS").unwrap_or_else(|_| "true".to_string());
+    if allow_signups.to_lowercase() == "false" {
+        tracing::warn!("Signup attempt rejected because ALLOW_SIGNUPS is false");
+        return (
+            axum::http::HeaderMap::new(),
+            axum::Json(AuthResponse {
+                success: false,
+                id: None,
+                token: None,
+                message: Some("Signups are currently disabled".to_string()),
+            }),
+        );
+    }
+
     let user_id = Uuid::new_v4().to_string();
     
     // Note: for production we will use argon2 here, keeping it simple for now

@@ -291,10 +291,10 @@ pub async fn passwordreset_request(
         .execute(&state.db)
         .await;
 
-    // Email delivery is not configured, so the token remains available through the normal test flow.
+    // Email delivery is not configured here (done in frontend), so we return the token
     tracing::info!("Password reset requested for {}", payload.email);
 
-    Json(GenericResponse { success: true, message: None })
+    Json(GenericResponse { success: true, message: Some(token) })
 }
 
 #[derive(Deserialize)]

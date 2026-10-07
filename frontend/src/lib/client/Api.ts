@@ -79,8 +79,17 @@ export async function register(email: string, password: string): Promise<{ succe
     return await post("/auth/register", { email, password })
 }
 
-export async function requestPasswordReset(email: string): Promise<{ success: boolean }> {
-    return await post("/auth/passwordreset/request", { email })
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; message?: string }> {
+    const res = await post<{ success: boolean; message?: string }>("/auth/passwordreset/request", { email })
+    if (res.success && res.message) {
+        // Send email via Next.js api
+        await fetch("/api/auth/sendresetemail", {
+            method: "POST",
+            body: JSON.stringify({ email, token: res.message }),
+            headers: { "Content-Type": "application/json" }
+        }).catch(err => console.error("Failed to send reset email", err));
+    }
+    return res;
 }
 
 export async function doPasswordReset(email: string, token: string, newPass: string): Promise<{ success: boolean }> {

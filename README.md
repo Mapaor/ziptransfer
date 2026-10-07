@@ -17,12 +17,12 @@ For P2P transfers you can use a custom TURN server, which allows NAT-traversal f
 - [X] Disable or enable sign-up.
 - [ ] Only admin can sign up new users.
 - [ ] Create user quota and handle logical volumes space available properly
-- [ ] Password reset via email link
+- [X] Password reset via email link
 - [ ] Google OAuth2 option to Sign-in and Sign-up
 
 ### In the far future
 - [ ] Upgrade and migrate the whole UI to a newer one, that distances it from the original Transfer.zip in a good sense, making it more original/cute and less corporative.
-- [ ] Add internationalization support for the UI (Catalan, Spanish, English for now)
+- [ ] Add internationalization support for the UI (Catalan, Spanish, English for now), set as a `LANG` env var (CA, ES, EN).
 - [ ] Add support for multiple storage backends (local, S3, etc.)
 
 ## License

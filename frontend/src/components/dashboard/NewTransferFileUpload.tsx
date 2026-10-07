@@ -7,7 +7,7 @@ import Progress from "@/components/elements/Progress";
 import { ApplicationContext } from "@/context/ApplicationContext";
 import { DashboardContext } from "@/context/DashboardContext";
 import { FileContext } from "@/context/FileProvider";
-import { markTransferComplete, newTransfer, newTransferRequest } from "@/lib/client/Api";
+import { markTransferComplete, newTransfer, newTransferRequest, sendTransferRequestByEmail } from "@/lib/client/Api";
 import { EXPIRATION_TIMES } from "@/lib/constants";
 import { Radio, RadioGroup } from "@headlessui/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -122,13 +122,14 @@ export default function ({ user, storage, brandProfiles }) {
 
     try {
       const { transferRequest } = await newTransferRequest({ name, description, emails: emailRecipients, brandProfileId })
+      if (emailRecipients.length > 0) {
+        await sendTransferRequestByEmail(transferRequest.id, emailRecipients)
+      }
     }
     catch (err) {
       displayErrorModal(err.message)
     }
-    // if (emailRecipients.length > 0) {
-    //   await sendTransferRequestByEmail(transferRequest.id, emailRecipients)
-    // }
+    
 
     router.replace(`/app?tab=requests`)
   }
@@ -264,7 +265,7 @@ export default function ({ user, storage, brandProfiles }) {
               </Select>
             </div>}
           </div>
-          <div className="hidden col-span-full gap-2">
+          <div className="col-span-full gap-2">
             <Label htmlFor="email">Recipients <span className="text-gray-400 font-normal text-xs leading-0">{emailRecipients.length > 0 ? (emailRecipients.length + " / " + getMaxRecipientsForPlan(user.plan)) : ""}</span></Label>
             <div className="relative flex items-center">
               <Input

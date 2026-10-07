@@ -2,12 +2,11 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
-import TransferDownloadedEmail from './templates/TransferDownloadedEmail.jsx';
-import TransferRequestReceivedEmail from './templates/TransferRequestReceivedEmail.jsx';
-import TransferShareEmail from './templates/TransferShareEmail.jsx';
-import TransferRequestShareEmail from './templates/TransferRequestShareEmail.jsx';
-import PasswordResetEmail from './templates/PasswordResetEmail.jsx';
-import MagicLinkEmail from './templates/MagicLinkEmail.jsx';
+import TransferDownloadedEmail from './templates/TransferDownloadedEmail';
+import TransferRequestReceivedEmail from './templates/TransferRequestReceivedEmail';
+import TransferShareEmail from './templates/TransferShareEmail';
+import TransferRequestShareEmail from './templates/TransferRequestShareEmail';
+import PasswordResetEmail from './templates/PasswordResetEmail';
 
 const tlsMode = process.env.SMTP_TLS?.toLowerCase() || 'starttls';
 
@@ -88,12 +87,5 @@ export async function sendPasswordReset(email, { link }) {
   await sendMail(PasswordResetEmail({ link }), {
     to: email,
     subject: "Reset your password - " + process.env.NEXT_PUBLIC_SITE_NAME,
-  });
-}
-
-export async function sendMagicLink(email, { link }) {
-  await sendMail(MagicLinkEmail({ link }), {
-    to: email,
-    subject: "Log In - " + process.env.NEXT_PUBLIC_SITE_NAME,
   });
 }
